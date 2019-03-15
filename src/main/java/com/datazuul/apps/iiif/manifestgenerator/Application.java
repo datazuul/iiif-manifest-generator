@@ -2,6 +2,11 @@ package com.datazuul.apps.iiif.manifestgenerator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.digitalcollections.iiif.model.ImageContent;
+import de.digitalcollections.iiif.model.enums.ViewingDirection;
+import de.digitalcollections.iiif.model.enums.ViewingHint;
+import de.digitalcollections.iiif.model.image.ImageApiProfile;
+import de.digitalcollections.iiif.model.image.ImageService;
 import de.digitalcollections.iiif.model.jackson.IiifObjectMapper;
 import de.digitalcollections.iiif.model.sharedcanvas.Canvas;
 import de.digitalcollections.iiif.model.sharedcanvas.Manifest;
@@ -49,8 +54,13 @@ public class Application implements ApplicationRunner {
   public void run(ApplicationArguments args) throws Exception {
     LOGGER.info("STARTING THE APPLICATION");
 
-    if (args.containsOption("d")) {
+    if (args.containsOption("d")
+        && args.containsOption("imageEndpoint")
+        && args.containsOption("presentationEndpoint")) {
       String imageDirectoryPath = args.getOptionValues("d").get(0);
+      String imageEndpoint = args.getOptionValues("imageEndpoint").get(0);
+      String presentationEndpoint = args.getOptionValues("presentationEndpoint").get(0);
+
       Path imageDirectory = Paths.get(imageDirectoryPath);
       final List<Path> files = new ArrayList<>();
       try {
@@ -87,69 +97,62 @@ public class Application implements ApplicationRunner {
                      }
                    });
 
-      generateManifest(imageDirectory.getFileName().toString(), files);
+      final String manifestIdentifier = imageDirectory.getFileName().toString();
+      generateManifest(manifestIdentifier, files, imageEndpoint, presentationEndpoint);
     } else {
       // automatically generate the help statement
-      System.out.println("Specify absolute directory path containing images using option '--d=...'. Directory name is used as identifier. Only '.jpg'-images are detected for now.");
+      System.out.println("Specify absolute directory path containing images using option '--d=...'."
+                         + "Specify your iiif server's image endpoint, e.g. '--imageEndpoint=http://www.yourdomain.com/iiif/image/2.1/'"
+                         + "Specify your iiif server's presentation endpoint, e.g. '--presentationEndpoint=http://www.yourdomain.com/iiif/presentation/2.1/'"
+                         + " Directory name is used as manifest identifier. Only '.jpg'-images are detected for now.");
     }
   }
 
-  private static void generateManifest(final String imageDirectoryName, final List<Path> files)
+  private static void generateManifest(final String manifestIdentifier, final List<Path> files, String imageEndpoint, String presentationEndpoint)
       throws JsonProcessingException, IOException, URISyntaxException {
     // Start Manifest
-    String urlPrefix = "http://www.yourdomain.com/iiif/presentation/2.1/";
-    String manifestLabel = "Manifest for " + imageDirectoryName;
-    Manifest manifest = new Manifest(urlPrefix + imageDirectoryName + "/manifest", manifestLabel);
+    String manifestLabel = "Manifest for " + manifestIdentifier;
+    Manifest manifest = new Manifest(presentationEndpoint + manifestIdentifier + "/manifest", manifestLabel);
 
-    List<Sequence> sequences = new ArrayList<>();
-    manifest.setSequences(sequences);
-
-    Sequence seq1 = new Sequence(urlPrefix + imageDirectoryName + "/sequence/normal", "Current page order");
-    sequences.add(seq1);
-
-    List<Canvas> canvases = new ArrayList<>();
-    seq1.setCanvases(canvases);
+    Sequence sequence = new Sequence(presentationEndpoint + manifestIdentifier + "/sequence/normal", "Current page order");
+    sequence.setViewingDirection(ViewingDirection.LEFT_TO_RIGHT);
+    sequence.addViewingHint(ViewingHint.PAGED);
+    manifest.addSequence(sequence);
 
     int i = 0;
     for (Path file : files) {
       i = i + 1;
-      addPage(urlPrefix, imageDirectoryName, canvases, i, file);
+      addPage(manifestIdentifier, sequence, i, file, imageEndpoint, presentationEndpoint);
     }
 
     String json = generateJson(manifest);
     System.out.println(json);
   }
 
-  private static void addPage(String urlPrefix, String imageDirectoryName, List<Canvas> canvases, int pageCounter, Path file)
+  private static void addPage(String manifestIdentifier, Sequence sequence, int pageCounter, Path file, String imageEndpoint, String presentationEndpoint)
       throws IOException, URISyntaxException {
-    System.out.println(file.toAbsolutePath());
+    System.err.println(file.toAbsolutePath());
 
     BufferedImage bimg = ImageIO.read(file.toFile());
     int width = bimg.getWidth();
     int height = bimg.getHeight();
 
     // add a new page
-    Canvas canvas1 = new Canvas(urlPrefix + imageDirectoryName + "/canvas/canvas-" + pageCounter, "p-" + pageCounter);
-    canvas1.setHeight(height);
-    canvas1.setWidth(width);
-    canvases.add(canvas1);
+    Canvas canvas = new Canvas(presentationEndpoint + manifestIdentifier + "/canvas/canvas-" + pageCounter, "p. " + pageCounter);
+    canvas.setWidth(width);
+    canvas.setHeight(height);
 
-//    List<Image> images = new ArrayList<>();
-//    canvas1.setImages(images);
-//
-//    Image image1 = new ImageImpl();
-//    image1.setOn(canvas1.getId());
-//    images.add(image1);
-//
-//    ImageResource imageResource1 = new ImageResourceImpl(urlPrefix + imageDirectoryName + "/" + fileName.toString());
-//    imageResource1.setHeight(height);
-//    imageResource1.setWidth(width);
-//    image1.setResource(imageResource1);
-//
-//    Service service1 = new Service(urlPrefix + imageDirectoryName + "/" + fileName.toString() + "?");
-//    service1.setContext("http://iiif.io/api/image/2/context.json");
-//    service1.setProfile("http://iiif.io/api/image/2/level1.json");
-//    imageResource1.setService(service1);
+    String filename = file.getFileName().toFile().getName();
+    String filenameWithoutExtension = filename.substring(0, filename.lastIndexOf("."));
+    String imageIdentifier = manifestIdentifier + "__" + filenameWithoutExtension;
+
+    ImageContent img = new ImageContent(imageEndpoint + imageIdentifier + "/full/full/0/default.jpg");
+    img.addService(new ImageService(imageEndpoint + imageIdentifier, ImageApiProfile.LEVEL_TWO));
+    img.setWidth(width);
+    img.setHeight(height);
+    canvas.addImage(img);
+
+    sequence.addCanvas(canvas);
   }
 
   public static String generateJson(Manifest manifest) throws JsonProcessingException {
