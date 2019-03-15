@@ -1,0 +1,25 @@
+logging:
+  level:
+    root: OFF
+
+spring:
+  main:
+    banner-mode: 'off'
+
+---
+
+spring:
+  profiles: info
+
+logging:
+  level:
+    root: INFO
+
+---
+
+spring:
+  profiles: debug
+
+logging:
+  level:
+    root: DEBUG
