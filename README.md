@@ -2,6 +2,24 @@
 
 A simple IIIF (<https://iiif.io>) manifest generator using [IIIF API library](https://github.com/dbmdz/iiif-apis).
 
+## Installation
+
+To support JPEG2000 install `libopenjp2`:
+
+Debian:
+
+```sh
+$ sudo apt-get install libopenjp2-7
+```
+
+Clone git-repository and build manifest generator using Maven:
+
+```sh
+$ mvn clean install
+```
+
+Executable JAR is located in `target` subdirectory after build.
+
 ## Usage
 
 Put all images (of your book) into a directory. Directory name is used as manifest identifier. Image names (without extension) are used for image identifier.
@@ -11,7 +29,7 @@ Then call generator using the following options:
 - Specify your iiif server's image endpoint, e.g. `--imageEndpoint=http://www.yourdomain.com/iiif/image/2.1/`
 - Specify your iiif server's presentation endpoint, e.g. `--presentationEndpoint=http://www.yourdomain.com/iiif/presentation/2.1/`
 
-Only '.jpg'-images are detected for now.
+Image files of type JPEG ('.jpg'), JPEG2000 ('.jp2') and TIFF ('.tif') are detected.
 Manifest-json will be generated to console. So redirect output to destination file.
 
 Example:
