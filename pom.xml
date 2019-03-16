@@ -14,11 +14,41 @@
   <version>1.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   
+  <properties>
+    <version.imageio-jnr>0.3.1</version.imageio-jnr>
+    <version.twelvemonkeys>3.4.1</version.twelvemonkeys>
+  </properties>
+  
   <dependencies>
+    <dependency>
+      <groupId>com.twelvemonkeys.imageio</groupId>
+      <artifactId>imageio-bmp</artifactId>
+      <version>${version.twelvemonkeys}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.twelvemonkeys.imageio</groupId>
+      <artifactId>imageio-jpeg</artifactId>
+      <version>${version.twelvemonkeys}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.twelvemonkeys.imageio</groupId>
+      <artifactId>imageio-tiff</artifactId>
+      <version>${version.twelvemonkeys}</version>
+    </dependency>
     <dependency>
       <groupId>de.digitalcollections.iiif</groupId>
       <artifactId>iiif-apis</artifactId>
       <version>0.3.7</version>
+    </dependency>
+    <dependency>
+      <groupId>de.digitalcollections.imageio</groupId>
+      <artifactId>imageio-turbojpeg</artifactId>
+      <version>${version.imageio-jnr}</version>
+    </dependency>
+    <dependency>
+      <groupId>de.digitalcollections.imageio</groupId>
+      <artifactId>imageio-openjpeg</artifactId>
+      <version>${version.imageio-jnr}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
