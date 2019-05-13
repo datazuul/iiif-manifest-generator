@@ -11,12 +11,14 @@ import de.digitalcollections.iiif.model.jackson.IiifObjectMapper;
 import de.digitalcollections.iiif.model.sharedcanvas.Canvas;
 import de.digitalcollections.iiif.model.sharedcanvas.Manifest;
 import de.digitalcollections.iiif.model.sharedcanvas.Sequence;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.List;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 public class ManifestGenerator {
 
@@ -45,9 +47,21 @@ public class ManifestGenerator {
       throws IOException, URISyntaxException {
     System.err.println(file.toAbsolutePath());
 
-    BufferedImage bimg = ImageIO.read(file.toFile());
-    int width = bimg.getWidth();
-    int height = bimg.getHeight();
+    int width = -1;
+    int height = -1;
+    try (ImageInputStream in = ImageIO.createImageInputStream(file)) {
+      final Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
+      if (readers.hasNext()) {
+        ImageReader reader = readers.next();
+        try {
+          reader.setInput(in);
+          width = reader.getWidth(0);
+          height = reader.getHeight(0);
+        } finally {
+          reader.dispose();
+        }
+      }
+    }
 
     // add a new page
     Canvas canvas = new Canvas(presentationEndpoint + manifestIdentifier + "/canvas/canvas-" + pageCounter, "p. " + pageCounter);
