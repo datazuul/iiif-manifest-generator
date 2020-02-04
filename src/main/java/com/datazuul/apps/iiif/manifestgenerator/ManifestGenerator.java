@@ -11,6 +11,7 @@ import de.digitalcollections.iiif.model.jackson.IiifObjectMapper;
 import de.digitalcollections.iiif.model.sharedcanvas.Canvas;
 import de.digitalcollections.iiif.model.sharedcanvas.Manifest;
 import de.digitalcollections.iiif.model.sharedcanvas.Sequence;
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -49,7 +50,8 @@ public class ManifestGenerator {
 
     int width = -1;
     int height = -1;
-    try (ImageInputStream in = ImageIO.createImageInputStream(file)) {
+    File f = file.toFile();
+    try (ImageInputStream in = ImageIO.createImageInputStream(f)) {
       final Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
       if (readers.hasNext()) {
         ImageReader reader = readers.next();
