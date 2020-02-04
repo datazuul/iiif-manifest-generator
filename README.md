@@ -22,7 +22,7 @@ Executable JAR is located in `target` subdirectory after build.
 
 ## Usage
 
-Put all images (of your book) into a directory. Directory name is used as manifest identifier. Image names (without extension) are used for image identifier.
+Put all images (of your book) into a directory. Directory name is used as manifest identifier. Directory namae and Image names (without extension; combined with two underscores: e.g. `my_book_id__001`) are used for image identifier.
 Then call generator using the following options:
 
 - Specify absolute directory path containing images using option `--d=...`.
