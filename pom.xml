@@ -8,7 +8,7 @@
     <version>2.1.3.RELEASE</version>
   </parent>
 
-  <name>datazuul: IIIF Manifest Generator</name>
+  <name>datazuul applications: IIIF Manifest Generator</name>
   <groupId>com.datazuul.apps</groupId>
   <artifactId>datazuul-iiif-manifest-generator</artifactId>
   <version>1.0.0-SNAPSHOT</version>
